@@ -64,8 +64,8 @@ module.exports = function(content) {
 	var data = {};
 	content = [content];
 	links.forEach(function(link) {
-		var newValue = link.value.split(",");
-		var newValue = newValue.map(function (value) {
+		var newValue1 = link.value.split(",");
+		var newValue = newValue1.map(function (value) {
 			var valueArray = value.trim().split(" ");
 			var obj = {
 				value: valueArray.shift(),
@@ -79,18 +79,22 @@ module.exports = function(content) {
 				obj.value = uri.format();
 			}
 			return obj;
+		}).filter(function (value) {
+			return value !== undefined;
 		});
+		if (newValue.length > 0)
+		{
+			do {
+				var ident = randomIdent();
+			} while(data[ident]);
+			data[ident] = newValue;
+			var x = content.pop();
 
-		do {
-			var ident = randomIdent();
-		} while(data[ident]);
-		data[ident] = newValue;
-		var x = content.pop();
 
-
-		content.push(x.substr(link.start + link.length));
-		content.push(ident);
-		content.push(x.substr(0, link.start));
+			content.push(x.substr(link.start + link.length));
+			content.push(ident);
+			content.push(x.substr(0, link.start));
+		}
 	});
 	content.reverse();
 	content = content.join("");
@@ -127,7 +131,6 @@ module.exports = function(content) {
 	return "module.exports = " + content.replace(/xxxHTMLLINKxxx[0-9\.]+xxx/g, function(match) {
 		if(!data[match]) return match;
 		return data[match].reduce(function (pV,cV, index, array) {
-
 			var hash = cV.hash || "";
 			var additional = cV.additional.length != 0 ? " " + cV.additional.join(" ") : "";
 			if (index != array.length -1) {
